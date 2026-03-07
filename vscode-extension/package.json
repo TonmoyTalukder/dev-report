@@ -1,0 +1,116 @@
+{
+  "name": "dev-report",
+  "displayName": "dev-report",
+  "description": "Generate AI-powered daily work reports from your Git commits",
+  "version": "0.1.0",
+  "publisher": "dev-report",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "keywords": ["git", "report", "ai", "work-log", "daily", "developer"],
+  "main": "./out/extension.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dev-report/dev-report"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "dev-report.generate",
+        "title": "Generate Work Report",
+        "category": "Dev Report"
+      },
+      {
+        "command": "dev-report.generateWithOptions",
+        "title": "Generate Work Report (with options)",
+        "category": "Dev Report"
+      },
+      {
+        "command": "dev-report.openPanel",
+        "title": "Open Dev Report Panel",
+        "category": "Dev Report"
+      },
+      {
+        "command": "dev-report.configure",
+        "title": "Configure Dev Report",
+        "category": "Dev Report"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "dev-report",
+          "title": "Dev Report",
+          "icon": "resources/icon-small.svg"
+        }
+      ]
+    },
+    "views": {
+      "dev-report": [
+        {
+          "type": "webview",
+          "id": "dev-report.panel",
+          "name": "Work Report",
+          "icon": "resources/icon-small.svg"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Dev Report",
+      "properties": {
+        "devReport.user": {
+          "type": "string",
+          "default": "",
+          "description": "Git author name to filter commits"
+        },
+        "devReport.aiProvider": {
+          "type": "string",
+          "enum": ["groq", "gemini", "ollama", "openrouter"],
+          "default": "groq",
+          "description": "AI provider to use for generating task descriptions"
+        },
+        "devReport.groqApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Groq API key (free at https://console.groq.com)"
+        },
+        "devReport.geminiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Google Gemini API key (free at https://aistudio.google.com/app/apikey)"
+        },
+        "devReport.openRouterApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenRouter API key (free at https://openrouter.ai/keys)"
+        },
+        "devReport.ollamaUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama server URL (local, no key needed)"
+        },
+        "devReport.defaultOutput": {
+          "type": "string",
+          "enum": ["table", "markdown", "excel"],
+          "default": "markdown",
+          "description": "Default output format"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish-ovsx": "ovsx publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.22.0",
+    "ovsx": "^0.9.0"
+  }
+}
