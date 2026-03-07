@@ -1,0 +1,10 @@
+dev-report
+dev-report.exe
+*.exe
+*.vsix
+
+vscode-extension/out/
+vscode-extension/node_modules/
+npm/node_modules/
+
+.DS_Store

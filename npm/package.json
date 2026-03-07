@@ -1,0 +1,27 @@
+{
+  "name": "dev-report",
+  "version": "0.1.0",
+  "description": "AI-powered developer work report generator from Git commits",
+  "bin": {
+    "dev-report": "./bin/dev-report.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "files": [
+    "bin/",
+    "install.js",
+    "README.md"
+  ],
+  "keywords": ["developer", "report", "git", "ai", "work-log", "cli"],
+  "author": "dev-report",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dev-report/dev-report"
+  },
+  "homepage": "https://github.com/dev-report/dev-report#readme"
+}
