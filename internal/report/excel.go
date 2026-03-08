@@ -66,7 +66,7 @@ func Excel(out *types.ReportOutput, filePath string) error {
 		meta += fmt.Sprintf("  |  Developer: %s", out.Developer)
 	}
 	if out.CheckIn != "" && out.CheckOut != "" {
-		meta += fmt.Sprintf("  |  Check-in: %s  →  Check-out: %s", out.CheckIn, out.CheckOut)
+		meta += fmt.Sprintf("  |  Check-in: %s  ->  Check-out: %s", out.CheckIn, out.CheckOut)
 	}
 	if out.Adjusted != "" {
 		meta += fmt.Sprintf("  |  Adjusted: %s", out.Adjusted)

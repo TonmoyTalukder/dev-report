@@ -137,7 +137,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 
 	fmt.Fprintf(os.Stderr, "\n🔍 %s — generating report…\n", constants.AppName)
 	if input.CheckIn != "" && input.CheckOut != "" {
-		fmt.Fprintf(os.Stderr, "   %s %s → %s", input.Date, input.CheckIn, input.CheckOut)
+		fmt.Fprintf(os.Stderr, "   %s %s -> %s", input.Date, input.CheckIn, input.CheckOut)
 		if input.Adjust != "" {
 			fmt.Fprintf(os.Stderr, "  (adjusted -%s)", input.Adjust)
 		}
