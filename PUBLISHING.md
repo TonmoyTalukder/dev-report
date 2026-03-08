@@ -109,14 +109,14 @@ npmjs.com has 2FA enabled by default. Publishing from the CLI requires an **Auto
 # 1. Update version in npm/package.json to match the release tag
 #    e.g. "version": "0.1.0"
 
-# 2. Publish using your automation token
-NPM_TOKEN=npm_your_token_here npm publish ./npm --access public
+# 2. Set your Granular Access Token (one-time per machine)
+npm config set //registry.npmjs.org/:_authToken npm_your_token_here
 
-# Or if you added NPM_TOKEN to your shell profile:
+# 3. Publish
 npm publish ./npm --access public
 ```
 
-> **Why not `npm login`?** `npm login` creates a session token, but 2FA is still required per-publish. An Automation Token with 2FA bypass skips this entirely.
+> **Why `npm config set`?** Setting `NPM_TOKEN=xxx` in the shell alone doesn't work — npm only reads it if `~/.npmrc` has `${NPM_TOKEN}` as a template. Using `npm config set` writes it directly to `~/.npmrc` so it works every time.
 
 ### Version must match
 
