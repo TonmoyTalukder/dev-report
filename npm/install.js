@@ -14,7 +14,7 @@ const os = require("os");
 const zlib = require("zlib");
 
 const VERSION = require("./package.json").version;
-const REPO = "dev-report/dev-report";
+const REPO = "TonmoyTalukder/dev-report";
 const BIN_DIR = path.join(__dirname, "bin");
 
 function getPlatformInfo() {

@@ -33,14 +33,16 @@ archives:
         format: zip
     files:
       - README.md
+      - LICENSE
 
 checksum:
   name_template: "checksums.txt"
 
 release:
   github:
-    owner: dev-report
+    owner: TonmoyTalukder
     name: dev-report
   draft: false
   prerelease: auto
   name_template: "v{{.Version}}"
+

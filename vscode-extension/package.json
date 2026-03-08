@@ -7,12 +7,21 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Other"],
-  "keywords": ["git", "report", "ai", "work-log", "daily", "developer"],
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "report",
+    "ai",
+    "work-log",
+    "daily",
+    "developer"
+  ],
   "main": "./out/extension.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dev-report/dev-report"
+    "url": "https://github.com/TonmoyTalukder/dev-report"
   },
   "contributes": {
     "commands": [
@@ -66,7 +75,12 @@
         },
         "devReport.aiProvider": {
           "type": "string",
-          "enum": ["groq", "gemini", "ollama", "openrouter"],
+          "enum": [
+            "groq",
+            "gemini",
+            "ollama",
+            "openrouter"
+          ],
           "default": "groq",
           "description": "AI provider to use for generating task descriptions"
         },
@@ -92,7 +106,11 @@
         },
         "devReport.defaultOutput": {
           "type": "string",
-          "enum": ["table", "markdown", "excel"],
+          "enum": [
+            "table",
+            "markdown",
+            "excel"
+          ],
           "default": "markdown",
           "description": "Default output format"
         }

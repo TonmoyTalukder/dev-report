@@ -14,14 +14,14 @@
     "README.md"
   ],
   "keywords": ["developer", "report", "git", "ai", "work-log", "cli"],
-  "author": "dev-report",
+  "author": "Tonmoy Talukder",
   "license": "MIT",
   "engines": {
     "node": ">=16"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/dev-report/dev-report"
+    "url": "https://github.com/TonmoyTalukder/dev-report"
   },
-  "homepage": "https://github.com/dev-report/dev-report#readme"
+  "homepage": "https://github.com/TonmoyTalukder/dev-report#readme"
 }
