@@ -43,7 +43,7 @@ func Run(ctx context.Context, input *types.ReportInput, cfg *config.Config) (*ty
 	fmt.Fprintf(os.Stderr, "  Found %d commit(s).\n", len(commits))
 
 	// ── Step 2: Group related commits ────────────────────────────────────────
-	groups := processor.GroupCommits(commits)
+	groups := processor.GroupCommits(commits, input.TaskMode)
 	fmt.Fprintf(os.Stderr, "  Grouped into %d task(s).\n", len(groups))
 
 	// ── Step 3: Calculate time budget ────────────────────────────────────────
@@ -59,7 +59,7 @@ func Run(ctx context.Context, input *types.ReportInput, cfg *config.Config) (*ty
 		fmt.Fprintf(os.Stderr, "  Time budget: %s (adjusted: %s)\n",
 			processor.FormatDuration(budget), input.Adjust)
 	} else {
-		estimatedTotal := processor.EstimateTimeWithoutBudget(groups)
+		estimatedTotal := estimateTimeWithoutBudget(commits, groups, input.TaskMode)
 		fmt.Fprintf(os.Stderr, "  No check-in/check-out provided — estimating %s total across tasks.\n",
 			processor.FormatDuration(estimatedTotal))
 	}
@@ -78,7 +78,7 @@ func Run(ctx context.Context, input *types.ReportInput, cfg *config.Config) (*ty
 		return buildOutput(input, tasks, len(commits), len(groups), budget), nil
 	}
 
-	tasks, err := ai.Generate(ctx, provider, groups)
+	tasks, err := ai.Generate(ctx, provider, groups, input.TaskMode)
 	if err != nil {
 		return nil, fmt.Errorf("AI generation: %w", err)
 	}
@@ -117,6 +117,24 @@ func buildOutput(input *types.ReportInput, tasks []*types.Task, commitCount, tas
 		CheckOut:    input.CheckOut,
 		Adjusted:    input.Adjust,
 	}
+}
+
+func estimateTimeWithoutBudget(commits []*types.Commit, groups []*types.TaskGroup, taskMode string) time.Duration {
+	if len(groups) == 0 {
+		return 0
+	}
+
+	baselineTaskCount := len(groups)
+	if taskMode != constants.TaskGranularityBalanced {
+		baselineGroups := processor.GroupCommits(commits, constants.TaskGranularityBalanced)
+		if len(baselineGroups) > 0 {
+			baselineTaskCount = len(baselineGroups)
+		}
+	}
+
+	budget := constants.DefaultTaskEstimate * time.Duration(baselineTaskCount)
+	processor.DistributeTime(groups, budget)
+	return budget
 }
 
 // buildFallbackTasks creates tasks without AI from commit groups.

@@ -16,6 +16,12 @@ var OutputFormats = []string{
 	OutputJSON,
 }
 
+var TaskGranularities = []string{
+	TaskGranularityBalanced,
+	TaskGranularityDetailed,
+	TaskGranularityGranular,
+}
+
 var GroqFreeModels = []string{
 	DefaultGroqModel,
 	"llama3-8b-8192",
@@ -112,8 +118,13 @@ const (
 	OutputExcel    = "excel"
 	OutputJSON     = "json"
 
+	TaskGranularityBalanced = "balanced"
+	TaskGranularityDetailed = "detailed"
+	TaskGranularityGranular = "granular"
+
 	DefaultAIProvider      = ProviderGroq
 	DefaultOutput          = OutputTable
+	DefaultTaskGranularity = TaskGranularityBalanced
 	DefaultGroqModel       = "llama-3.3-70b-versatile"
 	DefaultGeminiModel     = "gemini-1.5-flash"
 	DefaultOpenRouterModel = "meta-llama/llama-3.1-8b-instruct:free"

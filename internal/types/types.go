@@ -101,6 +101,7 @@ type ReportInput struct {
 	CheckOut   string // HH:MM
 	LastN      int
 	Adjust     string // e.g. "35min", "1h40m"
+	TaskMode   string
 	AIProvider string // groq, gemini, ollama, openrouter
 	Output     string // markdown, table, excel, json
 	OutputFile string // path for excel/file output

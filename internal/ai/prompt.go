@@ -33,7 +33,7 @@ type AITask struct {
 }
 
 // BuildPrompt constructs the full prompt string to send to the AI.
-func BuildPrompt(groups []*types.TaskGroup) string {
+func BuildPrompt(groups []*types.TaskGroup, taskMode string) string {
 	var pg []promptGroup
 	for i, g := range groups {
 		messages := make([]string, 0, len(g.Commits))
@@ -62,6 +62,12 @@ func BuildPrompt(groups []*types.TaskGroup) string {
 	}
 
 	dataJSON, _ := json.MarshalIndent(pg, "", "  ")
+	granularityRule := "Keep the report natural and concise. Merge obviously related work into one clear task and avoid noisy micro-tasks."
+	if taskMode == constants.TaskGranularityDetailed {
+		granularityRule = "Prefer slightly more task separation when groups represent clearly different outcomes, but keep the report natural and avoid repetitive or tiny micro-tasks."
+	} else if taskMode == constants.TaskGranularityGranular {
+		granularityRule = "Keep more distinct task rows and preserve separate work items when the commit evidence points to different outcomes, but still avoid awkward wording or trivial filler tasks."
+	}
 
 	return fmt.Sprintf(`You are writing a professional developer work report.
 
@@ -75,6 +81,7 @@ RULES — read carefully:
 5. TimeSpent: copy the provided value EXACTLY — do not change it.
 6. Status: always "Completed".
 7. groupId: copy the provided groupId exactly.
+8. %s
 
 EXAMPLES:
   BAD task:  "feat: add return_amount col in doctorSummary.tsx"
@@ -91,7 +98,7 @@ Format:
 [{"groupId":1,"task":"...","module":"...","description":"...","timeSpent":"...","status":"Completed"}]
 
 Commit groups:
-%s`, string(dataJSON))
+%s`, granularityRule, string(dataJSON))
 }
 
 // ParseResponse extracts the JSON array from the AI response, handling
@@ -121,8 +128,8 @@ func ParseResponse(raw string) ([]AITask, error) {
 
 // Generate calls the AI provider, parses the response, and returns tasks.
 // On failure it falls back to generating tasks directly from the commit data.
-func Generate(ctx context.Context, p Provider, groups []*types.TaskGroup) ([]*types.Task, error) {
-	prompt := BuildPrompt(groups)
+func Generate(ctx context.Context, p Provider, groups []*types.TaskGroup, taskMode string) ([]*types.Task, error) {
+	prompt := BuildPrompt(groups, taskMode)
 
 	raw, err := p.Generate(ctx, prompt)
 	if err != nil {

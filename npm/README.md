@@ -217,12 +217,18 @@ dev-report generate --user=TonmoyTalukder --checkin=09:00 --checkout=18:00
 
 # Use a different AI provider for this run only
 dev-report generate --checkin=09:00 --checkout=18:00 --ai=gemini
+
+# Keep each commit as its own task with an explicit time budget
+dev-report generate --checkin=09:00 --checkout=18:00 --adjust=35min --task-mode=granular
+
+# Keep more task detail even without check-in/check-out
+dev-report generate --last=20 --task-mode=granular
 ```
 
 ### Output formats
 
 ```bash
-# Print table in terminal (default)
+# Print clean shareable text in terminal (default)
 dev-report generate --checkin=09:00 --checkout=18:00
 
 # Print as Markdown
@@ -238,6 +244,32 @@ dev-report generate --checkin=09:00 --checkout=18:00 --output=excel
 dev-report generate --checkin=09:00 --checkout=18:00 --output=json
 ```
 
+The default terminal output is optimized for copy-paste into chat apps like WhatsApp, Slack, and email. It uses plain numbered tasks instead of heavy ASCII table borders.
+
+### Task modes
+
+Use `--task-mode` to control how aggressively commits are grouped into report tasks.
+
+| Mode | Best for | Behavior |
+|------|----------|----------|
+| `balanced` | Default daily use | Natural grouping with clean, manager-friendly task rows |
+| `detailed` | Slightly more separation | Keeps more distinct work items when the evidence is clear |
+| `granular` | Maximum task detail | Preserves each commit as its own task row |
+
+```bash
+# Default balanced mode
+dev-report generate --last=20
+
+# Slightly more task separation
+dev-report generate --last=20 --task-mode=detailed
+
+# Keep each commit as a separate task
+dev-report generate --last=20 --task-mode=granular
+
+# Granular mode also works with a real time budget
+dev-report generate --checkin=09:00 --checkout=18:00 --adjust=35min --task-mode=granular
+```
+
 ### All flags
 
 | Flag | Description | Example |
@@ -248,6 +280,7 @@ dev-report generate --checkin=09:00 --checkout=18:00 --output=json
 | `--checkout` | Work end time | `--checkout=18:00` |
 | `--adjust` | Break time to subtract | `--adjust=35min`, `--adjust=1h30m` |
 | `--last` | Last N commits | `--last=10` |
+| `--task-mode` | Task granularity mode | `--task-mode=balanced`, `--task-mode=detailed`, `--task-mode=granular` |
 | `--ai` | AI provider override | `--ai=gemini` |
 | `--output` | Output format | `--output=excel` |
 | `--out` | Save to file | `--out=report.md` |
@@ -270,6 +303,8 @@ Each task gets a proportional share based on:
 - **Commit type** — `feat:` > `fix:` > `chore:` as a multiplier
 
 The sum of all time values always equals your budget exactly.
+
+If you do **not** provide `--checkin` and `--checkout`, the tool estimates a reasonable total from your work history. In `detailed` and `granular` modes, the report can show more task rows without artificially inflating the estimated total day length.
 
 ---
 

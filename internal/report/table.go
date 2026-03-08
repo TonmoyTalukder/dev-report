@@ -2,84 +2,88 @@ package report
 
 import (
 	"fmt"
-	"os"
 	"strings"
-
-	"github.com/fatih/color"
-	"github.com/olekukonko/tablewriter"
 
 	"github.com/dev-report/dev-report/internal/types"
 )
 
 // Table prints the report as a formatted table to stdout.
 func Table(out *types.ReportOutput) {
-	cyan := color.New(color.FgCyan, color.Bold)
-	green := color.New(color.FgGreen)
-	yellow := color.New(color.FgYellow)
+	fmt.Print(Text(out))
+}
 
-	// Header info
-	cyan.Printf("\n  Daily Work Report\n")
-	fmt.Printf("  Date: %s", out.Date)
+func Text(out *types.ReportOutput) string {
+	var sb strings.Builder
+
+	sb.WriteString("\nDaily Work Report\n")
+	sb.WriteString(fmt.Sprintf("Date: %s", out.Date))
 	if out.Developer != "" {
-		fmt.Printf("  |  Developer: %s", out.Developer)
+		sb.WriteString(fmt.Sprintf("  |  Developer: %s", out.Developer))
 	}
 	if out.CheckIn != "" && out.CheckOut != "" {
-		fmt.Printf("  |  Check-in: %s  →  Check-out: %s", out.CheckIn, out.CheckOut)
+		sb.WriteString(fmt.Sprintf("  |  Check-in: %s  →  Check-out: %s", out.CheckIn, out.CheckOut))
 	}
 	if out.Adjusted != "" {
-		yellow.Printf("  |  Adjusted: %s", out.Adjusted)
+		sb.WriteString(fmt.Sprintf("  |  Adjusted: %s", out.Adjusted))
 	}
-	fmt.Println()
+	sb.WriteString("\n")
 	if out.CommitCount > 0 || out.TaskCount > 0 {
-		fmt.Printf("  Commits: %d  |  Tasks: %d\n", out.CommitCount, out.TaskCount)
+		sb.WriteString(fmt.Sprintf("Commits: %d  |  Tasks: %d\n", out.CommitCount, out.TaskCount))
 	}
 
-	// Table
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "Task", "Module", "Description", "Time Spent", "Status"})
-	table.SetBorder(true)
-	table.SetRowLine(false)
-	table.SetHeaderColor(
-		tablewriter.Colors{tablewriter.Bold},
-		tablewriter.Colors{tablewriter.Bold},
-		tablewriter.Colors{tablewriter.Bold},
-		tablewriter.Colors{tablewriter.Bold},
-		tablewriter.Colors{tablewriter.Bold},
-		tablewriter.Colors{tablewriter.Bold},
-	)
-	table.SetColumnColor(
-		tablewriter.Colors{},
-		tablewriter.Colors{tablewriter.FgCyanColor},
-		tablewriter.Colors{tablewriter.FgYellowColor},
-		tablewriter.Colors{},
-		tablewriter.Colors{tablewriter.FgGreenColor},
-		tablewriter.Colors{tablewriter.FgGreenColor},
-	)
-	table.SetColWidth(40)
+	for i, task := range out.Tasks {
+		sb.WriteString(fmt.Sprintf("\n%d. %s\n", task.Number, task.Title))
 
-	for _, t := range out.Tasks {
-		table.Append([]string{
-			fmt.Sprintf("%d", t.Number),
-			wrapText(t.Title, 35),
-			t.Module,
-			wrapText(t.Description, 45),
-			t.TimeSpent,
-			t.Status,
-		})
+		meta := make([]string, 0, 3)
+		if task.Module != "" {
+			meta = append(meta, fmt.Sprintf("Module: %s", task.Module))
+		}
+		if task.TimeSpent != "" {
+			meta = append(meta, fmt.Sprintf("Time: %s", task.TimeSpent))
+		}
+		if task.Status != "" {
+			meta = append(meta, fmt.Sprintf("Status: %s", task.Status))
+		}
+		if len(meta) > 0 {
+			sb.WriteString("   ")
+			sb.WriteString(strings.Join(meta, "  |  "))
+			sb.WriteString("\n")
+		}
+
+		if task.Description != "" {
+			lines := wrapLines(task.Description, 72)
+			if len(lines) > 0 {
+				sb.WriteString("   Description: ")
+				sb.WriteString(lines[0])
+				sb.WriteString("\n")
+				for _, line := range lines[1:] {
+					sb.WriteString("                ")
+					sb.WriteString(line)
+					sb.WriteString("\n")
+				}
+			}
+		}
+
+		if i < len(out.Tasks)-1 {
+			sb.WriteString("\n")
+		}
 	}
 
-	table.Render()
+	if out.TotalTime != "" {
+		sb.WriteString(fmt.Sprintf("\nTotal: %s\n\n", out.TotalTime))
+	}
 
-	// Footer
-	separator := strings.Repeat("─", 60)
-	fmt.Println(" " + separator)
-	green.Printf("  Total: %s\n\n", out.TotalTime)
+	return sb.String()
 }
 
 // wrapText inserts newlines into long strings for terminal display.
 func wrapText(s string, width int) string {
+	return strings.Join(wrapLines(s, width), "\n")
+}
+
+func wrapLines(s string, width int) []string {
 	if len(s) <= width {
-		return s
+		return []string{s}
 	}
 	words := strings.Fields(s)
 	var lines []string
@@ -101,5 +105,5 @@ func wrapText(s string, width int) string {
 	if current != "" {
 		lines = append(lines, current)
 	}
-	return strings.Join(lines, "\n")
+	return lines
 }

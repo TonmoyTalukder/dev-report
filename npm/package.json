@@ -1,6 +1,6 @@
 {
   "name": "dev-report",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "AI-powered developer work report generator from Git commits",
   "bin": {
     "dev-report": "bin/dev-report.js"

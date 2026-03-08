@@ -49,6 +49,7 @@ var (
 	flagCheckOut   string
 	flagLast       int
 	flagAdjust     string
+	flagTaskMode   string
 	flagAI         string
 	flagOutput     string
 	flagOutputFile string
@@ -61,6 +62,7 @@ func init() {
 	generateCmd.Flags().StringVar(&flagCheckOut, "checkout", "", "Work end time, HH:MM (e.g. 18:00)")
 	generateCmd.Flags().IntVar(&flagLast, "last", 0, "Use last N commits instead of date/time filter")
 	generateCmd.Flags().StringVar(&flagAdjust, "adjust", "", "Non-task time to subtract from budget (e.g. 35min, 1h40m)")
+	generateCmd.Flags().StringVar(&flagTaskMode, "task-mode", constants.DefaultTaskGranularity, "Task granularity: "+strings.Join(constants.TaskGranularities, ", "))
 	generateCmd.Flags().StringVar(&flagAI, "ai", "", "AI provider: "+strings.Join(constants.SupportedProviders, ", ")+" (overrides config)")
 	generateCmd.Flags().StringVar(&flagOutput, "output", "", "Output format: table (default), markdown, excel, json")
 	generateCmd.Flags().StringVar(&flagOutputFile, "out", "", "Output file path (for markdown/excel/json)")
@@ -92,6 +94,11 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		outputFmt = constants.DefaultOutput
 	}
 
+	taskMode := flagTaskMode
+	if taskMode == "" {
+		taskMode = constants.DefaultTaskGranularity
+	}
+
 	input := &types.ReportInput{
 		User:       user,
 		Date:       flagDate,
@@ -99,6 +106,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		CheckOut:   flagCheckOut,
 		LastN:      flagLast,
 		Adjust:     flagAdjust,
+		TaskMode:   taskMode,
 		AIProvider: flagAI,
 		Output:     outputFmt,
 		OutputFile: flagOutputFile,
@@ -113,6 +121,9 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 	if !isSupportedOutput(input.Output) {
 		return fmt.Errorf("unsupported --output %q (supported: %s)", input.Output, strings.Join(constants.OutputFormats, ", "))
+	}
+	if !isSupportedTaskMode(input.TaskMode) {
+		return fmt.Errorf("unsupported --task-mode %q (supported: %s)", input.TaskMode, strings.Join(constants.TaskGranularities, ", "))
 	}
 	if input.AIProvider != "" && !isSupportedProvider(input.AIProvider) {
 		return fmt.Errorf("unsupported --ai %q (supported: %s)", input.AIProvider, strings.Join(constants.SupportedProviders, ", "))
@@ -244,6 +255,15 @@ func isSupportedProvider(provider string) bool {
 func isSupportedOutput(output string) bool {
 	for _, candidate := range constants.OutputFormats {
 		if output == candidate {
+			return true
+		}
+	}
+	return false
+}
+
+func isSupportedTaskMode(taskMode string) bool {
+	for _, candidate := range constants.TaskGranularities {
+		if taskMode == candidate {
 			return true
 		}
 	}
