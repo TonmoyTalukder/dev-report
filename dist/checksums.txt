@@ -1,0 +1,5 @@
+54119f33ce7c7c43db1e964214fd4efe661699a3301dbd6265991438e91bf225  dev-report_0.1.0_darwin_amd64.tar.gz
+693913d8fc43cff04df82d4deab4579acdf78c599ae23ec9bdcf841024ac2b5a  dev-report_0.1.0_darwin_arm64.tar.gz
+e67e95ca8bd6233a52a3436f1fdcecfc11803ced25260b13f9191c148de119c4  dev-report_0.1.0_linux_amd64.tar.gz
+3442d483bad9f216729693d064950a8a1a18906a10fa914f3d006904442c9e99  dev-report_0.1.0_linux_arm64.tar.gz
+31d0090ed970268492d8cfa66d33fa771a7378f1f75d52ed9676836cac8225b7  dev-report_0.1.0_windows_amd64.zip
