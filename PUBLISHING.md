@@ -51,26 +51,29 @@ GoReleaser builds cross-platform binaries and uploads them as GitHub Release ass
 go test ./...
 go vet ./...
 
-# 2. Tag the release
-git tag v0.1.0
-git push origin main --tags
+# 2. Commit and tag the release
+git add -A && git commit -m "chore: bump version to vX.Y.Z"
+git tag vX.Y.Z
+git push origin main
+git push origin vX.Y.Z
 
-# 3. Run GoReleaser
-export GITHUB_TOKEN=ghp_your_token_here
-goreleaser release --clean
+# 3. Run GoReleaser (uses gh CLI token automatically if you are logged in)
+GITHUB_TOKEN=$(gh auth token) goreleaser release --clean
 ```
+
+> **Note:** GoReleaser requires a clean git state — no uncommitted files. Always commit everything before tagging.
 
 ### Verify
 
-Go to [github.com/dev-report/dev-report/releases](https://github.com/dev-report/dev-report/releases) and confirm the release includes:
+Go to [github.com/TonmoyTalukder/dev-report/releases](https://github.com/TonmoyTalukder/dev-report/releases) and confirm the release includes:
 
 ```
 checksums.txt
-dev-report_0.1.0_darwin_amd64.tar.gz
-dev-report_0.1.0_darwin_arm64.tar.gz
-dev-report_0.1.0_linux_amd64.tar.gz
-dev-report_0.1.0_linux_arm64.tar.gz
-dev-report_0.1.0_windows_amd64.zip
+dev-report_X.Y.Z_darwin_amd64.tar.gz
+dev-report_X.Y.Z_darwin_arm64.tar.gz
+dev-report_X.Y.Z_linux_amd64.tar.gz
+dev-report_X.Y.Z_linux_arm64.tar.gz
+dev-report_X.Y.Z_windows_amd64.zip
 ```
 
 ---
@@ -79,25 +82,48 @@ dev-report_0.1.0_windows_amd64.zip
 
 The npm package (`npm/`) downloads the correct binary for the user's OS during `postinstall`.
 
+### ⚠ Required: Create an npm Automation Token
+
+npmjs.com has 2FA enabled by default. Publishing from the CLI requires an **Automation Token** (not a regular login) to bypass the 2FA prompt.
+
+**One-time setup:**
+
+1. Go to [npmjs.com](https://www.npmjs.com/) → click your profile → **Access Tokens**
+2. Click **Generate New Token** → choose **Granular Access Token**
+3. Configure:
+   - **Token name:** `dev-report-publish`
+   - **Expiration:** your preference
+   - **Packages and scopes:** Select `dev-report` → Permission: **Read and write**
+   - **Organization:** None required
+   - Check **Allow publishing with two-factor authentication bypass** (this is the key setting)
+4. Click **Generate Token** and copy it
+5. Add it to your shell profile so it persists:
+   ```bash
+   echo 'export NPM_TOKEN=npm_your_token_here' >> ~/.zshrc
+   source ~/.zshrc
+   ```
+
 ### How to publish
 
 ```bash
 # 1. Update version in npm/package.json to match the release tag
 #    e.g. "version": "0.1.0"
 
-# 2. Log in to npm
-npm login
+# 2. Publish using your automation token
+NPM_TOKEN=npm_your_token_here npm publish ./npm --access public
 
-# 3. Publish
+# Or if you added NPM_TOKEN to your shell profile:
 npm publish ./npm --access public
 ```
+
+> **Why not `npm login`?** `npm login` creates a session token, but 2FA is still required per-publish. An Automation Token with 2FA bypass skips this entirely.
 
 ### Version must match
 
 The `npm/package.json` version **must exactly match** the GitHub Release tag. The install script builds the binary download URL from the version:
 
 ```
-https://github.com/dev-report/dev-report/releases/download/v{VERSION}/dev-report_{VERSION}_{OS}_{ARCH}.tar.gz
+https://github.com/TonmoyTalukder/dev-report/releases/download/v{VERSION}/dev-report_{VERSION}_{OS}_{ARCH}.tar.gz
 ```
 
 ### Verify
@@ -116,37 +142,35 @@ Homebrew requires a **tap repository** — a separate GitHub repo that contains 
 ### One-time setup
 
 1. Create a new GitHub repository named `homebrew-dev-report`
-   - Full name: `github.com/dev-report/homebrew-dev-report`
+   - Full name: `github.com/TonmoyTalukder/homebrew-dev-report`
 
 2. Inside that repo, create a file: `Formula/dev-report.rb`
 
-### Formula template
-
-Get the SHA256 checksums from `checksums.txt` in the GitHub Release, then fill in the formula:
+### Formula template (v0.1.0 — real checksums)
 
 ```ruby
 class DevReport < Formula
   desc "AI-powered developer work report generator"
-  homepage "https://github.com/dev-report/dev-report"
+  homepage "https://github.com/TonmoyTalukder/dev-report"
   version "0.1.0"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/dev-report/dev-report/releases/download/v0.1.0/dev-report_0.1.0_darwin_arm64.tar.gz"
-      sha256 "PASTE_SHA256_FROM_checksums.txt"
+      url "https://github.com/TonmoyTalukder/dev-report/releases/download/v0.1.0/dev-report_0.1.0_darwin_arm64.tar.gz"
+      sha256 "693913d8fc43cff04df82d4deab4579acdf78c599ae23ec9bdcf841024ac2b5a"
     else
-      url "https://github.com/dev-report/dev-report/releases/download/v0.1.0/dev-report_0.1.0_darwin_amd64.tar.gz"
-      sha256 "PASTE_SHA256_FROM_checksums.txt"
+      url "https://github.com/TonmoyTalukder/dev-report/releases/download/v0.1.0/dev-report_0.1.0_darwin_amd64.tar.gz"
+      sha256 "54119f33ce7c7c43db1e964214fd4efe661699a3301dbd6265991438e91bf225"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/dev-report/dev-report/releases/download/v0.1.0/dev-report_0.1.0_linux_arm64.tar.gz"
-      sha256 "PASTE_SHA256_FROM_checksums.txt"
+      url "https://github.com/TonmoyTalukder/dev-report/releases/download/v0.1.0/dev-report_0.1.0_linux_arm64.tar.gz"
+      sha256 "3442d483bad9f216729693d064950a8a1a18906a10fa914f3d006904442c9e99"
     else
-      url "https://github.com/dev-report/dev-report/releases/download/v0.1.0/dev-report_0.1.0_linux_amd64.tar.gz"
-      sha256 "PASTE_SHA256_FROM_checksums.txt"
+      url "https://github.com/TonmoyTalukder/dev-report/releases/download/v0.1.0/dev-report_0.1.0_linux_amd64.tar.gz"
+      sha256 "e67e95ca8bd6233a52a3436f1fdcecfc11803ced25260b13f9191c148de119c4"
     end
   end
 
@@ -160,6 +184,8 @@ class DevReport < Formula
 end
 ```
 
+> **Tip:** For each new release, get the SHA256 values from the `checksums.txt` file attached to the GitHub Release.
+
 ### For each new release
 
 1. Update the version number in the formula
@@ -170,7 +196,7 @@ end
 ### Verify
 
 ```bash
-brew tap dev-report/dev-report
+brew tap TonmoyTalukder/homebrew-dev-report
 brew install dev-report
 dev-report version
 ```
@@ -270,14 +296,15 @@ Search for **dev-report** on [open-vsx.org](https://open-vsx.org/).
 Use this checklist when releasing a new version:
 
 ```
-[ ] Go tests pass:  go test ./...
-[ ] No vet issues:  go vet ./...
-[ ] Version bumped in: npm/package.json, vscode-extension/package.json
-[ ] Git tagged:     git tag vX.Y.Z && git push origin main --tags
-[ ] GoReleaser run: goreleaser release --clean
+[ ] Go tests pass:        go test ./...
+[ ] No vet issues:        go vet ./...
+[ ] Version bumped in:    npm/package.json, vscode-extension/package.json
+[ ] Committed + tagged:   git tag vX.Y.Z && git push origin main && git push origin vX.Y.Z
+[ ] GoReleaser run:       GITHUB_TOKEN=$(gh auth token) goreleaser release --clean
 [ ] GitHub Release confirmed (all 5 archives + checksums.txt visible)
-[ ] npm published:  npm publish ./npm --access public
-[ ] Homebrew formula updated with new version + SHA256 values
+[ ] npm Automation Token ready (npmjs.com → Access Tokens → Granular)
+[ ] npm published:        NPM_TOKEN=npm_... npm publish ./npm --access public
+[ ] Homebrew formula updated with new version + real SHA256 from checksums.txt
 [ ] VS Code extension published: npx vsce publish
 [ ] Open VSX extension published: npm run publish-ovsx
 ```

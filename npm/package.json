@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "AI-powered developer work report generator from Git commits",
   "bin": {
-    "dev-report": "./bin/dev-report.js"
+    "dev-report": "bin/dev-report.js"
   },
   "scripts": {
     "postinstall": "node install.js"
@@ -13,7 +13,14 @@
     "install.js",
     "README.md"
   ],
-  "keywords": ["developer", "report", "git", "ai", "work-log", "cli"],
+  "keywords": [
+    "developer",
+    "report",
+    "git",
+    "ai",
+    "work-log",
+    "cli"
+  ],
   "author": "Tonmoy Talukder",
   "license": "MIT",
   "engines": {
@@ -21,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/TonmoyTalukder/dev-report"
+    "url": "git+https://github.com/TonmoyTalukder/dev-report.git"
   },
   "homepage": "https://github.com/TonmoyTalukder/dev-report#readme"
 }
