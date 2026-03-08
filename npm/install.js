@@ -105,10 +105,8 @@ async function main() {
 
   const binDest = path.join(BIN_DIR, binName);
 
-  // Skip if already installed
   if (fs.existsSync(binDest)) {
-    console.log(`  dev-report: binary already present, skipping download.`);
-    return;
+    fs.unlinkSync(binDest);
   }
 
   console.log(`  dev-report: downloading ${archiveName}…`);

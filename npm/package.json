@@ -1,6 +1,6 @@
 {
   "name": "dev-report",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "AI-powered developer work report generator from Git commits",
   "bin": {
     "dev-report": "bin/dev-report.js"
@@ -12,7 +12,7 @@
     "yauzl": "^2.10.0"
   },
   "files": [
-    "bin/",
+    "bin/dev-report.js",
     "install.js",
     "README.md"
   ],
