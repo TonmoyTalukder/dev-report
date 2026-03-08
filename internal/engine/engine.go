@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -156,13 +158,19 @@ func cleanMsg(msg string) string {
 
 // parseDurationStr parses formatted strings like "2h 30m", "45m", "1h" back to Duration.
 func parseDurationStr(s string) time.Duration {
+	re := regexp.MustCompile(`^(?:(\d+)h)?(?:\s*(\d+)m)?$`)
+	matches := re.FindStringSubmatch(strings.TrimSpace(s))
+	if matches == nil {
+		return 0
+	}
+
 	var h, m int
-	fmt.Sscanf(s, "%dh %dm", &h, &m)
-	if h == 0 {
-		fmt.Sscanf(s, "%dm", &m)
+	if matches[1] != "" {
+		h, _ = strconv.Atoi(matches[1])
 	}
-	if m == 0 {
-		fmt.Sscanf(s, "%dh", &h)
+	if matches[2] != "" {
+		m, _ = strconv.Atoi(matches[2])
 	}
+
 	return time.Duration(h)*time.Hour + time.Duration(m)*time.Minute
 }
