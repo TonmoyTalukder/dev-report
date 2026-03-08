@@ -75,7 +75,7 @@ For each commit group below, write one report row.
 
 RULES — read carefully:
 1. Task title: plain English, simple words, max 8 words. No file names, no code.
-2. Description: ONE plain sentence. No technical terms, no file names, no variable names.
+2. Description: ONE plain sentence, ideally around 10 to 15 simple words, and never more than 15 words. No technical terms, no file names, no variable names.
 3. Write as if explaining to a non-technical manager who does not know programming.
 4. Module: use the provided module name exactly.
 5. TimeSpent: copy the provided value EXACTLY — do not change it.
@@ -88,7 +88,7 @@ EXAMPLES:
   GOOD task: "Added return amount to doctor summary"
 
   BAD description: "Refactored DI container and fixed null pointer in UserService.java"
-  GOOD description: "Fixed a crash that happened when loading user information"
+  GOOD description: "Fixed a crash that happened when loading user information for the team"
 
   BAD task:  "fix: useEffect hook cleanup in StoreComponent"
   GOOD task: "Fixed a display issue in the store screen"
@@ -160,14 +160,17 @@ func Generate(ctx context.Context, p Provider, groups []*types.TaskGroup, taskMo
 		}
 		if ai, ok := taskMap[groupID]; ok {
 			t.Title = ai.Task
-			t.Description = ai.Description
+			t.Description = chooseDescription(ai.Description, fallbackDesc(g))
 			if ai.Module != "" {
 				t.Module = ai.Module
 			}
 		} else {
 			// AI didn't return this group — use fallback for it
 			t.Title = fallbackTitle(g)
-			t.Description = fallbackDesc(g)
+			t.Description = normalizeDescription(fallbackDesc(g))
+		}
+		if t.Description == "" {
+			t.Description = normalizeDescription(fallbackDesc(g))
 		}
 		tasks = append(tasks, t)
 	}
@@ -183,7 +186,7 @@ func fallback(groups []*types.TaskGroup) []*types.Task {
 			Number:      i + 1,
 			Title:       fallbackTitle(g),
 			Module:      g.Module,
-			Description: fallbackDesc(g),
+			Description: normalizeDescription(fallbackDesc(g)),
 			TimeSpent:   processor.FormatDuration(g.TimeSpent),
 			Status:      "Completed",
 		}
@@ -224,6 +227,47 @@ func fallbackDesc(g *types.TaskGroup) string {
 		return "Development work completed."
 	}
 	return strings.Join(msgs, "; ")
+}
+
+func chooseDescription(primary, backup string) string {
+	chosen := normalizeDescription(primary)
+	if descriptionWordCount(chosen) >= 6 {
+		return chosen
+	}
+
+	fallback := normalizeDescription(backup)
+	if descriptionWordCount(fallback) > descriptionWordCount(chosen) {
+		return fallback
+	}
+	return chosen
+}
+
+func normalizeDescription(desc string) string {
+	cleaned := strings.Join(strings.Fields(desc), " ")
+	if cleaned == "" {
+		return "Completed planned work and shared a clear progress update."
+	}
+
+	if idx := strings.IndexAny(cleaned, ".!?"); idx >= 0 {
+		cleaned = strings.TrimSpace(cleaned[:idx])
+	}
+
+	words := strings.Fields(cleaned)
+	if len(words) > 15 {
+		words = words[:15]
+	}
+
+	cleaned = strings.Join(words, " ")
+	cleaned = strings.Trim(cleaned, " .,:;!?")
+	if cleaned == "" {
+		return "Completed planned work and shared a clear progress update."
+	}
+	cleaned = strings.ToUpper(string(cleaned[0])) + cleaned[1:]
+	return cleaned
+}
+
+func descriptionWordCount(desc string) int {
+	return len(strings.Fields(desc))
 }
 
 // cleanMessage strips git prefix tags from a commit message.
