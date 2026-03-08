@@ -37,6 +37,42 @@ function getPlatformInfo() {
   return { goos, goarch, ext, binName, archiveName };
 }
 
+function extractZip(zipPath, extractDir, binName, finalDest) {
+  return new Promise((resolve, reject) => {
+    const yauzl = require("yauzl");
+    
+    yauzl.open(zipPath, { lazyEntries: true }, (err, zipfile) => {
+      if (err) return reject(err);
+      
+      zipfile.readEntry();
+      zipfile.on("entry", (entry) => {
+        if (/\/$/.test(entry.fileName)) {
+          zipfile.readEntry();
+        } else {
+          zipfile.openReadStream(entry, (err, readStream) => {
+            if (err) return reject(err);
+            
+            const outputPath = path.join(extractDir, path.basename(entry.fileName));
+            const writeStream = fs.createWriteStream(outputPath);
+            
+            readStream.pipe(writeStream);
+            writeStream.on("close", () => {
+              if (path.basename(entry.fileName) === binName) {
+                fs.copyFileSync(outputPath, finalDest);
+              }
+              zipfile.readEntry();
+            });
+          });
+        }
+      });
+      
+      zipfile.on("end", () => {
+        resolve();
+      });
+    });
+  });
+}
+
 function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
@@ -88,13 +124,24 @@ async function main() {
   // Extract binary
   console.log(`  dev-report: extracting…`);
   if (goos === "windows") {
-    // Use PowerShell to extract zip on Windows
-    execSync(
-      `powershell -Command "Expand-Archive -Force '${tmpFile}' '${path.join(os.tmpdir(), "dev-report-extract")}'"`,
-      { stdio: "pipe" }
-    );
-    const extracted = path.join(os.tmpdir(), "dev-report-extract", binName);
-    fs.copyFileSync(extracted, binDest);
+    // Use Node.js to extract zip on Windows
+    const extractDir = path.join(os.tmpdir(), "dev-report-extract");
+    if (!fs.existsSync(extractDir)) {
+      fs.mkdirSync(extractDir, { recursive: true });
+    }
+    
+    try {
+      await extractZip(tmpFile, extractDir, binName, binDest);
+    } catch (err) {
+      // Fallback to tar if yauzl is not available
+      try {
+        execSync(`tar -xf "${tmpFile}" -C "${extractDir}"`, { stdio: "pipe" });
+        const extracted = path.join(extractDir, binName);
+        fs.copyFileSync(extracted, binDest);
+      } catch (tarErr) {
+        throw new Error(`Failed to extract zip: ${err.message}`);
+      }
+    }
   } else {
     execSync(`tar -xzf "${tmpFile}" -C "${BIN_DIR}" "${binName}"`, { stdio: "pipe" });
     fs.chmodSync(binDest, 0o755);

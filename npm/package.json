@@ -8,6 +8,9 @@
   "scripts": {
     "postinstall": "node install.js"
   },
+  "dependencies": {
+    "yauzl": "^2.10.0"
+  },
   "files": [
     "bin/",
     "install.js",
