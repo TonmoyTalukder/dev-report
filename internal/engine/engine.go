@@ -59,11 +59,9 @@ func Run(ctx context.Context, input *types.ReportInput, cfg *config.Config) (*ty
 		fmt.Fprintf(os.Stderr, "  Time budget: %s (adjusted: %s)\n",
 			processor.FormatDuration(budget), input.Adjust)
 	} else {
-		// No check-in/check-out: estimate 30 min per group
-		fmt.Fprintln(os.Stderr, "  No check-in/check-out provided — estimating 30 min per task.")
-		for _, g := range groups {
-			g.TimeSpent = constants.DefaultTaskEstimate
-		}
+		estimatedTotal := processor.EstimateTimeWithoutBudget(groups)
+		fmt.Fprintf(os.Stderr, "  No check-in/check-out provided — estimating %s total across tasks.\n",
+			processor.FormatDuration(estimatedTotal))
 	}
 
 	// ── Step 4: AI task generation ───────────────────────────────────────────

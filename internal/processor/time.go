@@ -144,28 +144,61 @@ func DistributeTime(groups []*types.TaskGroup, budget time.Duration) {
 	}
 
 	totalBudgetMinutes := int(math.Round(budget.Minutes()))
+	minimumPerGroup := 0
+	if totalBudgetMinutes >= len(groups)*5 {
+		minimumPerGroup = 5
+	}
+
+	remainingPool := totalBudgetMinutes - (minimumPerGroup * len(groups))
 	allocatedMinutes := 0
 
 	for i, g := range groups {
 		isLast := i == len(groups)-1
-		remainingMinutes := totalBudgetMinutes - allocatedMinutes
+		remainingMinutes := remainingPool - allocatedMinutes
 		if remainingMinutes < 0 {
 			remainingMinutes = 0
 		}
 
+		extraMinutes := 0
 		if isLast {
-			// Last group gets the remainder to avoid drift from rounding
-			g.TimeSpent = time.Duration(remainingMinutes) * time.Minute
+			extraMinutes = remainingMinutes
 		} else {
-			rawMinutes := (g.Weight / totalWeight) * float64(totalBudgetMinutes)
+			rawMinutes := (g.Weight / totalWeight) * float64(remainingPool)
 			rounded := int(roundToNearest5(rawMinutes))
 			if rounded > remainingMinutes {
 				rounded = remainingMinutes
 			}
-			g.TimeSpent = time.Duration(rounded) * time.Minute
+			extraMinutes = rounded
 			allocatedMinutes += rounded
 		}
+
+		g.TimeSpent = time.Duration(minimumPerGroup+extraMinutes) * time.Minute
 	}
+}
+
+func EstimateTimeWithoutBudget(groups []*types.TaskGroup) time.Duration {
+	if len(groups) == 0 {
+		return 0
+	}
+
+	budget := constants.DefaultTaskEstimate * time.Duration(len(groups))
+	DistributeTime(groups, budget)
+
+	var total time.Duration
+	for _, g := range groups {
+		total += g.TimeSpent
+	}
+
+	if total > 0 {
+		return total
+	}
+
+	for _, g := range groups {
+		g.TimeSpent = constants.DefaultTaskEstimate
+		total += g.TimeSpent
+	}
+
+	return total
 }
 
 // FormatDuration converts a time.Duration into a human-readable string like
