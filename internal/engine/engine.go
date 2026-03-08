@@ -77,7 +77,7 @@ func Run(ctx context.Context, input *types.ReportInput, cfg *config.Config) (*ty
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "  ⚠  AI setup failed: %v\n  Falling back to commit-based report.\n", err)
 		tasks := buildFallbackTasks(groups)
-		return buildOutput(input, tasks, budget), nil
+		return buildOutput(input, tasks, len(commits), len(groups), budget), nil
 	}
 
 	tasks, err := ai.Generate(ctx, provider, groups)
@@ -86,11 +86,11 @@ func Run(ctx context.Context, input *types.ReportInput, cfg *config.Config) (*ty
 	}
 
 	// ── Step 5: Build output ─────────────────────────────────────────────────
-	return buildOutput(input, tasks, budget), nil
+	return buildOutput(input, tasks, len(commits), len(groups), budget), nil
 }
 
 // buildOutput assembles the final ReportOutput from inputs and generated tasks.
-func buildOutput(input *types.ReportInput, tasks []*types.Task, budget time.Duration) *types.ReportOutput {
+func buildOutput(input *types.ReportInput, tasks []*types.Task, commitCount, taskCount int, budget time.Duration) *types.ReportOutput {
 	date := input.Date
 	if date == "" {
 		date = time.Now().Format("2006-01-02")
@@ -108,14 +108,16 @@ func buildOutput(input *types.ReportInput, tasks []*types.Task, budget time.Dura
 	}
 
 	return &types.ReportOutput{
-		Input:     input,
-		Tasks:     tasks,
-		TotalTime: totalTime,
-		Date:      date,
-		Developer: input.User,
-		CheckIn:   input.CheckIn,
-		CheckOut:  input.CheckOut,
-		Adjusted:  input.Adjust,
+		Input:       input,
+		Tasks:       tasks,
+		CommitCount: commitCount,
+		TaskCount:   taskCount,
+		TotalTime:   totalTime,
+		Date:        date,
+		Developer:   input.User,
+		CheckIn:     input.CheckIn,
+		CheckOut:    input.CheckOut,
+		Adjusted:    input.Adjust,
 	}
 }
 

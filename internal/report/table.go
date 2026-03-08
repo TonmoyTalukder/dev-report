@@ -30,6 +30,9 @@ func Table(out *types.ReportOutput) {
 		yellow.Printf("  |  Adjusted: %s", out.Adjusted)
 	}
 	fmt.Println()
+	if out.CommitCount > 0 || out.TaskCount > 0 {
+		fmt.Printf("  Commits: %d  |  Tasks: %d\n", out.CommitCount, out.TaskCount)
+	}
 
 	// Table
 	table := tablewriter.NewWriter(os.Stdout)

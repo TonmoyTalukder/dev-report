@@ -109,12 +109,14 @@ type ReportInput struct {
 
 // ReportOutput is the completed report ready for formatting.
 type ReportOutput struct {
-	Input     *ReportInput
-	Tasks     []*Task
-	TotalTime string
-	Date      string
-	Developer string
-	CheckIn   string
-	CheckOut  string
-	Adjusted  string
+	Input       *ReportInput
+	Tasks       []*Task
+	CommitCount int
+	TaskCount   int
+	TotalTime   string
+	Date        string
+	Developer   string
+	CheckIn     string
+	CheckOut    string
+	Adjusted    string
 }

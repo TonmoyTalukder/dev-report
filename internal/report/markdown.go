@@ -26,6 +26,9 @@ func Markdown(out *types.ReportOutput) string {
 		sb.WriteString(fmt.Sprintf("  |  **Total task time:** %s", out.TotalTime))
 	}
 	sb.WriteString("\n\n")
+	if out.CommitCount > 0 || out.TaskCount > 0 {
+		sb.WriteString(fmt.Sprintf("**Commits:** %d  |  **Tasks:** %d\n\n", out.CommitCount, out.TaskCount))
+	}
 
 	sb.WriteString("| # | Task | Module | Description | Time Spent | Status |\n")
 	sb.WriteString("|---|------|--------|-------------|------------|--------|\n")
