@@ -21,7 +21,7 @@ func Text(out *types.ReportOutput) string {
 		sb.WriteString(fmt.Sprintf("  |  Developer: %s", out.Developer))
 	}
 	if out.CheckIn != "" && out.CheckOut != "" {
-		sb.WriteString(fmt.Sprintf("  |  Check-in: %s  →  Check-out: %s", out.CheckIn, out.CheckOut))
+		sb.WriteString(fmt.Sprintf("  |  Check-in: %s  ->  Check-out: %s", out.CheckIn, out.CheckOut))
 	}
 	if out.Adjusted != "" {
 		sb.WriteString(fmt.Sprintf("  |  Adjusted: %s", out.Adjusted))
@@ -32,7 +32,12 @@ func Text(out *types.ReportOutput) string {
 	}
 
 	for i, task := range out.Tasks {
-		sb.WriteString(fmt.Sprintf("\n%d. %s\n", task.Number, task.Title))
+		if i == 0 {
+			sb.WriteString("\n")
+		} else {
+			sb.WriteString("\n")
+		}
+		sb.WriteString(fmt.Sprintf("%d. %s\n", task.Number, task.Title))
 
 		meta := make([]string, 0, 3)
 		if task.Module != "" {
@@ -62,10 +67,6 @@ func Text(out *types.ReportOutput) string {
 					sb.WriteString("\n")
 				}
 			}
-		}
-
-		if i < len(out.Tasks)-1 {
-			sb.WriteString("\n")
 		}
 	}
 

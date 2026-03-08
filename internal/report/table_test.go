@@ -11,6 +11,8 @@ func TestTextIsCopyPasteFriendly(t *testing.T) {
 	out := &types.ReportOutput{
 		Date:        "2026-03-08",
 		Developer:   "TonmoyTalukder",
+		CheckIn:     "09:00",
+		CheckOut:    "18:00",
 		CommitCount: 2,
 		TaskCount:   1,
 		TotalTime:   "30m",
@@ -36,6 +38,9 @@ func TestTextIsCopyPasteFriendly(t *testing.T) {
 	}
 	if !strings.Contains(got, "Module: Npm  |  Time: 30m  |  Status: Completed") {
 		t.Fatalf("expected compact meta line, got %q", got)
+	}
+	if !strings.Contains(got, "Check-in: 09:00  ->  Check-out: 18:00") {
+		t.Fatalf("expected ASCII-safe check-in/check-out separator, got %q", got)
 	}
 	if !strings.Contains(got, "Total: 30m") {
 		t.Fatalf("expected total time in output, got %q", got)
