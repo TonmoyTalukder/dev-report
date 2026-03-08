@@ -3,7 +3,7 @@
   "displayName": "dev-report",
   "description": "Generate AI-powered daily work reports from your Git commits",
   "version": "0.1.0",
-  "publisher": "dev-report",
+  "publisher": "TonmoyTalukder",
   "engines": {
     "vscode": "^1.85.0"
   },
