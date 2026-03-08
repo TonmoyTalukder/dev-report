@@ -20,9 +20,9 @@ func TestBuildPromptIncludesTaskModeInstructions(t *testing.T) {
 		},
 	}
 
-	balanced := BuildPrompt(groups, constants.TaskGranularityBalanced)
-	detailed := BuildPrompt(groups, constants.TaskGranularityDetailed)
-	granular := BuildPrompt(groups, constants.TaskGranularityGranular)
+	balanced := BuildPrompt(groups, "dev-report", constants.TaskGranularityBalanced)
+	detailed := BuildPrompt(groups, "dev-report", constants.TaskGranularityDetailed)
+	granular := BuildPrompt(groups, "dev-report", constants.TaskGranularityGranular)
 
 	if !strings.Contains(balanced, "avoid noisy micro-tasks") {
 		t.Fatalf("expected balanced prompt guidance, got %q", balanced)

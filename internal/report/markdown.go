@@ -30,13 +30,13 @@ func Markdown(out *types.ReportOutput) string {
 		sb.WriteString(fmt.Sprintf("**Commits:** %d  |  **Tasks:** %d\n\n", out.CommitCount, out.TaskCount))
 	}
 
-	sb.WriteString("| # | Task | Module | Description | Time Spent | Status |\n")
+	sb.WriteString("| # | Task | Project | Description | Time Spent | Status |\n")
 	sb.WriteString("|---|------|--------|-------------|------------|--------|\n")
 	for _, t := range out.Tasks {
 		sb.WriteString(fmt.Sprintf("| %d | %s | %s | %s | %s | %s |\n",
 			t.Number,
 			escapeMD(t.Title),
-			escapeMD(t.Module),
+			escapeMD(t.Project),
 			escapeMD(t.Description),
 			t.TimeSpent,
 			t.Status,

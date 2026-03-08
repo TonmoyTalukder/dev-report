@@ -74,11 +74,11 @@ func Run(ctx context.Context, input *types.ReportInput, cfg *config.Config) (*ty
 	provider, err := ai.New(cfg, providerName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "  ⚠  AI setup failed: %v\n  Falling back to commit-based report.\n", err)
-		tasks := buildFallbackTasks(groups)
+		tasks := buildFallbackTasks(groups, input.ProjectName)
 		return buildOutput(input, tasks, len(commits), len(groups), budget), nil
 	}
 
-	tasks, err := ai.Generate(ctx, provider, groups, input.TaskMode)
+	tasks, err := ai.Generate(ctx, provider, groups, input.ProjectName, input.TaskMode)
 	if err != nil {
 		return nil, fmt.Errorf("AI generation: %w", err)
 	}
@@ -138,7 +138,7 @@ func estimateTimeWithoutBudget(commits []*types.Commit, groups []*types.TaskGrou
 }
 
 // buildFallbackTasks creates tasks without AI from commit groups.
-func buildFallbackTasks(groups []*types.TaskGroup) []*types.Task {
+func buildFallbackTasks(groups []*types.TaskGroup, projectName string) []*types.Task {
 	tasks := make([]*types.Task, len(groups))
 	for i, g := range groups {
 		title := "Work done"
@@ -148,8 +148,8 @@ func buildFallbackTasks(groups []*types.TaskGroup) []*types.Task {
 		tasks[i] = &types.Task{
 			Number:      i + 1,
 			Title:       title,
-			Module:      g.Module,
-			Description: fmt.Sprintf("%d commit(s) in %s", len(g.Commits), g.Module),
+			Project:     projectName,
+			Description: fmt.Sprintf("Completed %d related commits", len(g.Commits)),
 			TimeSpent:   processor.FormatDuration(g.TimeSpent),
 			Status:      "Completed",
 		}

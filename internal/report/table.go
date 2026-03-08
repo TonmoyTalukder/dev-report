@@ -15,13 +15,13 @@ func Table(out *types.ReportOutput) {
 func Text(out *types.ReportOutput) string {
 	var sb strings.Builder
 
-	sb.WriteString("\n#  TASK | Module | Description | Time Spent | Status\n")
+	sb.WriteString("\n#  TASK | Project | Description | Time Spent | Status\n")
 
 	for _, task := range out.Tasks {
 		sb.WriteString(fmt.Sprintf("%d. %s | %s | %s | %s | %s\n",
 			task.Number,
 			sanitizeCell(task.Title),
-			sanitizeCell(task.Module),
+			sanitizeCell(task.Project),
 			sanitizeCell(task.Description),
 			sanitizeCell(task.TimeSpent),
 			sanitizeCell(task.Status),

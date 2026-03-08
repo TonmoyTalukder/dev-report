@@ -15,8 +15,8 @@ func TestTextIsCopyPasteFriendly(t *testing.T) {
 			{
 				Number:      1,
 				Title:       "Improved package download",
-				Module:      "Npm",
-				Description: "Made package downloads more reliable for Windows installs and updates.",
+				Project:     "dev-report",
+				Description: "Made downloads more reliable",
 				TimeSpent:   "30m",
 				Status:      "Completed",
 			},
@@ -28,10 +28,10 @@ func TestTextIsCopyPasteFriendly(t *testing.T) {
 	if strings.Contains(got, "+---") || strings.Contains(got, "| # |") {
 		t.Fatalf("expected text output without boxed table borders, got %q", got)
 	}
-	if !strings.Contains(got, "#  TASK | Module | Description | Time Spent | Status") {
+	if !strings.Contains(got, "#  TASK | Project | Description | Time Spent | Status") {
 		t.Fatalf("expected compact header row, got %q", got)
 	}
-	if !strings.Contains(got, "1. Improved package download | Npm | Made package downloads more reliable for Windows installs and updates. | 30m | Completed") {
+	if !strings.Contains(got, "1. Improved package download | dev-report | Made downloads more reliable | 30m | Completed") {
 		t.Fatalf("expected single-line task row, got %q", got)
 	}
 	if strings.Contains(got, "Daily Work Report") || strings.Contains(got, "Check-in:") {

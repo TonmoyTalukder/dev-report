@@ -100,17 +100,18 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	input := &types.ReportInput{
-		User:       user,
-		Date:       flagDate,
-		CheckIn:    flagCheckIn,
-		CheckOut:   flagCheckOut,
-		LastN:      flagLast,
-		Adjust:     flagAdjust,
-		TaskMode:   taskMode,
-		AIProvider: flagAI,
-		Output:     outputFmt,
-		OutputFile: flagOutputFile,
-		WorkDir:    workDir,
+		User:        user,
+		Date:        flagDate,
+		CheckIn:     flagCheckIn,
+		CheckOut:    flagCheckOut,
+		LastN:       flagLast,
+		Adjust:      flagAdjust,
+		TaskMode:    taskMode,
+		AIProvider:  flagAI,
+		Output:      outputFmt,
+		OutputFile:  flagOutputFile,
+		ProjectName: filepath.Base(workDir),
+		WorkDir:     workDir,
 	}
 
 	if (input.CheckIn == "") != (input.CheckOut == "") {
@@ -209,7 +210,7 @@ func printJSON(out *types.ReportOutput, path string) {
 	type jsonTask struct {
 		Number      int    `json:"number"`
 		Task        string `json:"task"`
-		Module      string `json:"module"`
+		Project     string `json:"project"`
 		Description string `json:"description"`
 		TimeSpent   string `json:"timeSpent"`
 		Status      string `json:"status"`
@@ -219,7 +220,7 @@ func printJSON(out *types.ReportOutput, path string) {
 		tasks[i] = jsonTask{
 			Number:      t.Number,
 			Task:        t.Title,
-			Module:      t.Module,
+			Project:     t.Project,
 			Description: t.Description,
 			TimeSpent:   t.TimeSpent,
 			Status:      t.Status,

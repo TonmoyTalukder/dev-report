@@ -16,7 +16,7 @@ import (
 // promptGroup is the JSON structure sent to the AI per task group.
 type promptGroup struct {
 	GroupID   int      `json:"groupId"`
-	Module    string   `json:"module"`
+	Project   string   `json:"project"`
 	Messages  []string `json:"commitMessages"`
 	Files     []string `json:"changedFiles"`
 	TimeSpent string   `json:"timeSpent"`
@@ -26,6 +26,7 @@ type promptGroup struct {
 type AITask struct {
 	GroupID     int    `json:"groupId"`
 	Task        string `json:"task"`
+	Project     string `json:"project"`
 	Module      string `json:"module"`
 	Description string `json:"description"`
 	TimeSpent   string `json:"timeSpent"`
@@ -33,7 +34,7 @@ type AITask struct {
 }
 
 // BuildPrompt constructs the full prompt string to send to the AI.
-func BuildPrompt(groups []*types.TaskGroup, taskMode string) string {
+func BuildPrompt(groups []*types.TaskGroup, projectName, taskMode string) string {
 	var pg []promptGroup
 	for i, g := range groups {
 		messages := make([]string, 0, len(g.Commits))
@@ -54,7 +55,7 @@ func BuildPrompt(groups []*types.TaskGroup, taskMode string) string {
 
 		pg = append(pg, promptGroup{
 			GroupID:   i + 1,
-			Module:    g.Module,
+			Project:   projectName,
 			Messages:  messages,
 			Files:     files,
 			TimeSpent: processor.FormatDuration(g.TimeSpent),
@@ -75,9 +76,9 @@ For each commit group below, write one report row.
 
 RULES — read carefully:
 1. Task title: plain English, simple words, max 8 words. No file names, no code.
-2. Description: ONE plain sentence, ideally around 10 to 15 simple words, and never more than 15 words. No technical terms, no file names, no variable names.
+2. Description: ONE short plain phrase, max 5 words. No technical terms, no file names, no variable names.
 3. Write as if explaining to a non-technical manager who does not know programming.
-4. Module: use the provided module name exactly.
+4. Project: use the provided project name exactly.
 5. TimeSpent: copy the provided value EXACTLY — do not change it.
 6. Status: always "Completed".
 7. groupId: copy the provided groupId exactly.
@@ -88,14 +89,14 @@ EXAMPLES:
   GOOD task: "Added return amount to doctor summary"
 
   BAD description: "Refactored DI container and fixed null pointer in UserService.java"
-  GOOD description: "Fixed a crash that happened when loading user information for the team"
+  GOOD description: "Fixed user loading issue"
 
   BAD task:  "fix: useEffect hook cleanup in StoreComponent"
   GOOD task: "Fixed a display issue in the store screen"
 
 Return ONLY a valid JSON array — no markdown, no explanation, nothing else.
 Format:
-[{"groupId":1,"task":"...","module":"...","description":"...","timeSpent":"...","status":"Completed"}]
+[{"groupId":1,"task":"...","project":"...","description":"...","timeSpent":"...","status":"Completed"}]
 
 Commit groups:
 %s`, granularityRule, string(dataJSON))
@@ -128,19 +129,19 @@ func ParseResponse(raw string) ([]AITask, error) {
 
 // Generate calls the AI provider, parses the response, and returns tasks.
 // On failure it falls back to generating tasks directly from the commit data.
-func Generate(ctx context.Context, p Provider, groups []*types.TaskGroup, taskMode string) ([]*types.Task, error) {
-	prompt := BuildPrompt(groups, taskMode)
+func Generate(ctx context.Context, p Provider, groups []*types.TaskGroup, projectName, taskMode string) ([]*types.Task, error) {
+	prompt := BuildPrompt(groups, projectName, taskMode)
 
 	raw, err := p.Generate(ctx, prompt)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "⚠  AI provider (%s) failed: %v\n   Falling back to commit-based report.\n", p.Name(), err)
-		return fallback(groups), nil
+		return fallback(groups, projectName), nil
 	}
 
 	aiTasks, err := ParseResponse(raw)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "⚠  AI response parse failed: %v\n   Falling back to commit-based report.\n", err)
-		return fallback(groups), nil
+		return fallback(groups, projectName), nil
 	}
 
 	// Map AI tasks back by groupId, preserve order
@@ -154,15 +155,17 @@ func Generate(ctx context.Context, p Provider, groups []*types.TaskGroup, taskMo
 		groupID := i + 1
 		t := &types.Task{
 			Number:    groupID,
-			Module:    g.Module,
+			Project:   projectName,
 			TimeSpent: processor.FormatDuration(g.TimeSpent),
 			Status:    "Completed",
 		}
 		if ai, ok := taskMap[groupID]; ok {
 			t.Title = ai.Task
 			t.Description = chooseDescription(ai.Description, fallbackDesc(g))
-			if ai.Module != "" {
-				t.Module = ai.Module
+			if ai.Project != "" {
+				t.Project = ai.Project
+			} else if ai.Module != "" {
+				t.Project = ai.Module
 			}
 		} else {
 			// AI didn't return this group — use fallback for it
@@ -179,13 +182,13 @@ func Generate(ctx context.Context, p Provider, groups []*types.TaskGroup, taskMo
 }
 
 // fallback builds tasks directly from commit data without AI.
-func fallback(groups []*types.TaskGroup) []*types.Task {
+func fallback(groups []*types.TaskGroup, projectName string) []*types.Task {
 	tasks := make([]*types.Task, len(groups))
 	for i, g := range groups {
 		tasks[i] = &types.Task{
 			Number:      i + 1,
 			Title:       fallbackTitle(g),
-			Module:      g.Module,
+			Project:     projectName,
 			Description: normalizeDescription(fallbackDesc(g)),
 			TimeSpent:   processor.FormatDuration(g.TimeSpent),
 			Status:      "Completed",
@@ -230,22 +233,16 @@ func fallbackDesc(g *types.TaskGroup) string {
 }
 
 func chooseDescription(primary, backup string) string {
-	chosen := normalizeDescription(primary)
-	if descriptionWordCount(chosen) >= 6 {
-		return chosen
+	if strings.TrimSpace(primary) != "" {
+		return normalizeDescription(primary)
 	}
-
-	fallback := normalizeDescription(backup)
-	if descriptionWordCount(fallback) > descriptionWordCount(chosen) {
-		return fallback
-	}
-	return chosen
+	return normalizeDescription(backup)
 }
 
 func normalizeDescription(desc string) string {
 	cleaned := strings.Join(strings.Fields(desc), " ")
 	if cleaned == "" {
-		return "Completed planned work and shared a clear progress update."
+		return "Completed planned project work"
 	}
 
 	if idx := strings.IndexAny(cleaned, ".!?"); idx >= 0 {
@@ -253,14 +250,14 @@ func normalizeDescription(desc string) string {
 	}
 
 	words := strings.Fields(cleaned)
-	if len(words) > 15 {
-		words = words[:15]
+	if len(words) > 5 {
+		words = words[:5]
 	}
 
 	cleaned = strings.Join(words, " ")
 	cleaned = strings.Trim(cleaned, " .,:;!?")
 	if cleaned == "" {
-		return "Completed planned work and shared a clear progress update."
+		return "Completed planned project work"
 	}
 	cleaned = strings.ToUpper(string(cleaned[0])) + cleaned[1:]
 	return cleaned

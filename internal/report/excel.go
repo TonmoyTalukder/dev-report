@@ -76,7 +76,7 @@ func Excel(out *types.ReportOutput, filePath string) error {
 
 	// Row 3: empty spacer
 	// Row 4: Header
-	headers := []string{"#", "Task", "Module", "Description", "Time Spent", "Status"}
+	headers := []string{"#", "Task", "Project", "Description", "Time Spent", "Status"}
 	cols := []string{"A", "B", "C", "D", "E", "F"}
 	for i, h := range headers {
 		cell := cols[i] + "4"
@@ -98,7 +98,7 @@ func Excel(out *types.ReportOutput, filePath string) error {
 		rowStr := fmt.Sprintf("%d", row)
 		f.SetCellValue(sheet, "A"+rowStr, t.Number)
 		f.SetCellValue(sheet, "B"+rowStr, t.Title)
-		f.SetCellValue(sheet, "C"+rowStr, t.Module)
+		f.SetCellValue(sheet, "C"+rowStr, t.Project)
 		f.SetCellValue(sheet, "D"+rowStr, t.Description)
 		f.SetCellValue(sheet, "E"+rowStr, t.TimeSpent)
 		f.SetCellValue(sheet, "F"+rowStr, t.Status)

@@ -87,7 +87,7 @@ func (g *TaskGroup) TotalLines() int {
 type Task struct {
 	Number      int
 	Title       string
-	Module      string
+	Project     string
 	Description string
 	TimeSpent   string
 	Status      string
@@ -95,17 +95,18 @@ type Task struct {
 
 // ReportInput holds all parameters provided by the user.
 type ReportInput struct {
-	User       string
-	Date       string // YYYY-MM-DD; empty = today
-	CheckIn    string // HH:MM
-	CheckOut   string // HH:MM
-	LastN      int
-	Adjust     string // e.g. "35min", "1h40m"
-	TaskMode   string
-	AIProvider string // groq, gemini, ollama, openrouter
-	Output     string // markdown, table, excel, json
-	OutputFile string // path for excel/file output
-	WorkDir    string // git repo directory
+	User        string
+	Date        string // YYYY-MM-DD; empty = today
+	CheckIn     string // HH:MM
+	CheckOut    string // HH:MM
+	LastN       int
+	Adjust      string // e.g. "35min", "1h40m"
+	TaskMode    string
+	AIProvider  string // groq, gemini, ollama, openrouter
+	Output      string // markdown, table, excel, json
+	OutputFile  string // path for excel/file output
+	ProjectName string // derived git repo/project name
+	WorkDir     string // git repo directory
 }
 
 // ReportOutput is the completed report ready for formatting.
