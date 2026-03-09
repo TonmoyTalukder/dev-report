@@ -47,7 +47,7 @@ func Run(ctx context.Context, input *types.ReportInput, cfg *config.Config) (*ty
 	fmt.Fprintf(os.Stderr, "  Grouped into %d task(s).\n", len(groups))
 
 	// ── Step 3: Calculate time budget ────────────────────────────────────────
-	budget, err := processor.CalculateBudget(input.CheckIn, input.CheckOut, input.Adjust)
+	budget, err := processor.CalculateBudget(input.CheckIn, input.CheckOut, input.WorkingHours, input.Adjust)
 	if err != nil {
 		return nil, fmt.Errorf("time budget: %w", err)
 	}
@@ -60,7 +60,7 @@ func Run(ctx context.Context, input *types.ReportInput, cfg *config.Config) (*ty
 			processor.FormatDuration(budget), input.Adjust)
 	} else {
 		estimatedTotal := estimateTimeWithoutBudget(commits, groups, input.TaskMode)
-		fmt.Fprintf(os.Stderr, "  No check-in/check-out provided — estimating %s total across tasks.\n",
+		fmt.Fprintf(os.Stderr, "  No explicit time budget provided — estimating %s total across tasks.\n",
 			processor.FormatDuration(estimatedTotal))
 	}
 

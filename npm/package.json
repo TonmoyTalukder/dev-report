@@ -1,12 +1,13 @@
 {
   "name": "dev-report",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "AI-powered developer work report generator from Git commits",
   "bin": {
     "dev-report": "bin/dev-report.js"
   },
   "scripts": {
-    "postinstall": "node install.js"
+    "postinstall": "node install.js",
+    "prepare:github-package": "node prepare-github-package.js"
   },
   "dependencies": {
     "yauzl": "^2.10.0"

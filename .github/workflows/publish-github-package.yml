@@ -1,0 +1,35 @@
+name: Publish GitHub Package
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+          scope: '@tonmoytalukder'
+
+      - name: Prepare scoped GitHub package
+        working-directory: npm
+        run: node prepare-github-package.js
+
+      - name: Publish to GitHub Packages
+        working-directory: npm/.github-package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

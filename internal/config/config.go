@@ -10,15 +10,16 @@ import (
 
 // Config holds all tool configuration, merged from file + environment variables.
 type Config struct {
-	User          string `json:"user"`
-	AIProvider    string `json:"aiProvider"`
-	GroqAPIKey    string `json:"groqApiKey"`
-	GeminiAPIKey  string `json:"geminiApiKey"`
-	OpenRouterKey string `json:"openRouterApiKey"`
-	OllamaURL     string `json:"ollamaUrl"`
-	OllamaModel   string `json:"ollamaModel"`
-	GroqModel     string `json:"groqModel"`
-	DefaultOutput string `json:"defaultOutput"`
+	User           string `json:"user"`
+	GitHubUsername string `json:"githubUsername"`
+	AIProvider     string `json:"aiProvider"`
+	GroqAPIKey     string `json:"groqApiKey"`
+	GeminiAPIKey   string `json:"geminiApiKey"`
+	OpenRouterKey  string `json:"openRouterApiKey"`
+	OllamaURL      string `json:"ollamaUrl"`
+	OllamaModel    string `json:"ollamaModel"`
+	GroqModel      string `json:"groqModel"`
+	DefaultOutput  string `json:"defaultOutput"`
 }
 
 // Defaults returns a Config with sensible defaults applied.

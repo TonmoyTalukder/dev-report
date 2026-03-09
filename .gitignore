@@ -6,6 +6,7 @@ dev-report.exe
 vscode-extension/out/
 vscode-extension/node_modules/
 npm/node_modules/
+npm/.github-package/
 
 # API keys — never commit this
 dev-report.config.json

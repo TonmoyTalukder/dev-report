@@ -30,6 +30,25 @@ func TestDistributeTimeNeverAllocatesNegativeRemainder(t *testing.T) {
 	}
 }
 
+func TestCalculateBudgetUsesWorkingHoursWhenProvided(t *testing.T) {
+	got, err := CalculateBudget("", "", "9h", "35min")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	want := 8*time.Hour + 25*time.Minute
+	if got != want {
+		t.Fatalf("expected %v, got %v", want, got)
+	}
+}
+
+func TestCalculateBudgetRejectsInvalidWorkingHours(t *testing.T) {
+	_, err := CalculateBudget("", "", "abc", "")
+	if err == nil {
+		t.Fatal("expected invalid hours error")
+	}
+}
+
 func TestDistributeTimeCapsRoundedAllocationToRemainingBudget(t *testing.T) {
 	groups := []*types.TaskGroup{
 		{Weight: 1},

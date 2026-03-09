@@ -16,13 +16,13 @@ var rootCmd = &cobra.Command{
 	Long: `dev-report — AI-powered developer work report generator.
 
 Reads your Git commits and produces a structured work report with
-task names, modules, descriptions, and time spent.
+	task names, projects, descriptions, and time spent.
 
 Supported AI providers (all free): ` + strings.Join(constants.SupportedProviders, ", ") + `
 
 Examples:
-  dev-report generate --user=john --checkin=09:00 --checkout=18:00
-  dev-report generate --user=john --date=2026-03-07 --adjust=35min
+  dev-report generate --user=john --hours=9h --adjust=35min
+  dev-report generate --user=john --date=2026-03-07 --checkin=09:00 --checkout=18:00
   dev-report generate --user=john --last=10 --ai=gemini
   dev-report init`,
 }

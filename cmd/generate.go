@@ -22,22 +22,28 @@ var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate a work report from Git commits",
 	Example: `  # Time range for today
-  dev-report generate --user=john --checkin=09:00 --checkout=18:00
+  dev-report generate --user=TonmoyTalukder --checkin=09:00 --checkout=18:00
+
+  # Full-day report with an explicit working-hours budget
+  dev-report generate --user=TonmoyTalukder --hours=9h --adjust=35min
 
   # With break adjustment
-  dev-report generate --user=john --checkin=09:00 --checkout=18:00 --adjust=35min
+  dev-report generate --user=TonmoyTalukder --checkin=09:00 --checkout=18:00 --adjust=35min
 
   # Specific date
-  dev-report generate --user=john --date=2026-03-07 --checkin=09:00 --checkout=17:30
+  dev-report generate --user=TonmoyTalukder --date=2026-03-07 --checkin=09:00 --checkout=17:30
+
+  # Specific date with full-day commits and a total budget
+  dev-report generate --user=TonmoyTalukder --date=2026-03-07 --hours=8h30m --adjust=30m
 
   # Last N commits
-  dev-report generate --user=john --last=10
+  dev-report generate --user=TonmoyTalukder --last=10
 
   # Use a specific AI provider
-  dev-report generate --user=john --checkin=09:00 --checkout=18:00 --ai=gemini
+  dev-report generate --user=TonmoyTalukder --checkin=09:00 --checkout=18:00 --ai=gemini
 
   # Export to Excel
-  dev-report generate --user=john --checkin=09:00 --checkout=18:00 --output=excel`,
+  dev-report generate --user=TonmoyTalukder --checkin=09:00 --checkout=18:00 --output=excel`,
 	RunE: runGenerate,
 }
 
@@ -47,6 +53,7 @@ var (
 	flagDate       string
 	flagCheckIn    string
 	flagCheckOut   string
+	flagHours      string
 	flagLast       int
 	flagAdjust     string
 	flagTaskMode   string
@@ -60,6 +67,7 @@ func init() {
 	generateCmd.Flags().StringVar(&flagDate, "date", "", "Date to generate report for, YYYY-MM-DD (default: today)")
 	generateCmd.Flags().StringVar(&flagCheckIn, "checkin", "", "Work start time, HH:MM (e.g. 09:00)")
 	generateCmd.Flags().StringVar(&flagCheckOut, "checkout", "", "Work end time, HH:MM (e.g. 18:00)")
+	generateCmd.Flags().StringVar(&flagHours, "hours", "", "Total working hours for the day, used as a time budget across that date's commits (e.g. 8h, 8h30m)")
 	generateCmd.Flags().IntVar(&flagLast, "last", 0, "Use last N commits instead of date/time filter")
 	generateCmd.Flags().StringVar(&flagAdjust, "adjust", "", "Non-task time to subtract from budget (e.g. 35min, 1h40m)")
 	generateCmd.Flags().StringVar(&flagTaskMode, "task-mode", constants.DefaultTaskGranularity, "Task granularity: "+strings.Join(constants.TaskGranularities, ", "))
@@ -100,22 +108,29 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	input := &types.ReportInput{
-		User:        user,
-		Date:        flagDate,
-		CheckIn:     flagCheckIn,
-		CheckOut:    flagCheckOut,
-		LastN:       flagLast,
-		Adjust:      flagAdjust,
-		TaskMode:    taskMode,
-		AIProvider:  flagAI,
-		Output:      outputFmt,
-		OutputFile:  flagOutputFile,
-		ProjectName: filepath.Base(workDir),
-		WorkDir:     workDir,
+		User:         user,
+		Date:         flagDate,
+		CheckIn:      flagCheckIn,
+		CheckOut:     flagCheckOut,
+		WorkingHours: flagHours,
+		LastN:        flagLast,
+		Adjust:       flagAdjust,
+		TaskMode:     taskMode,
+		AIProvider:   flagAI,
+		Output:       outputFmt,
+		OutputFile:   flagOutputFile,
+		ProjectName:  filepath.Base(workDir),
+		WorkDir:      workDir,
 	}
 
 	if (input.CheckIn == "") != (input.CheckOut == "") {
 		return fmt.Errorf("both --checkin and --checkout must be provided together")
+	}
+	if input.WorkingHours != "" && (input.CheckIn != "" || input.CheckOut != "") {
+		return fmt.Errorf("--hours cannot be used together with --checkin/--checkout")
+	}
+	if input.WorkingHours != "" && input.LastN > 0 {
+		return fmt.Errorf("--hours cannot be used together with --last")
 	}
 	if input.LastN < 0 {
 		return fmt.Errorf("--last must be zero or greater")
@@ -131,7 +146,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	// Validate: need at least one commit selection method
-	if input.User == "" && input.LastN == 0 && input.Date == "" && input.CheckIn == "" {
+	if input.User == "" && input.LastN == 0 && input.Date == "" && input.CheckIn == "" && input.WorkingHours == "" {
 		fmt.Fprintln(os.Stderr, "ℹ  No filter specified — fetching all commits from today.")
 		input.Date = time.Now().Format("2006-01-02")
 	}
@@ -139,6 +154,16 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	fmt.Fprintf(os.Stderr, "\n🔍 %s — generating report…\n", constants.AppName)
 	if input.CheckIn != "" && input.CheckOut != "" {
 		fmt.Fprintf(os.Stderr, "   %s %s -> %s", input.Date, input.CheckIn, input.CheckOut)
+		if input.Adjust != "" {
+			fmt.Fprintf(os.Stderr, "  (adjusted -%s)", input.Adjust)
+		}
+		fmt.Fprintln(os.Stderr)
+	} else if input.WorkingHours != "" {
+		date := input.Date
+		if date == "" {
+			date = time.Now().Format("2006-01-02")
+		}
+		fmt.Fprintf(os.Stderr, "   %s total hours: %s", date, input.WorkingHours)
 		if input.Adjust != "" {
 			fmt.Fprintf(os.Stderr, "  (adjusted -%s)", input.Adjust)
 		}

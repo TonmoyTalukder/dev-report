@@ -18,10 +18,10 @@
 ---
 
 ```
-#  Task                                  Module    Description                        Time Spent  Status
-1  Added return amount to doctor summary  Hospital  Return amount column added          1h 25m      Completed
-2  Excel export for MR list               Hospital  Users can export MR list to Excel   2h 50m      Completed
-3  Fixed input bug in suggestion screen   Store     Text input fixed in suggestion      1h 10m      Completed
+#  TASK | Project | Description | Time Spent | Status
+1. Improved report output | dev-report | Fixed report issue | 25m | Completed
+2. Improved report rows | dev-report | Made rows compact | 15m | Completed
+3. Polished text output | dev-report | Improved portability | 10m | Completed
 ```
 
 ---
@@ -36,10 +36,17 @@ npm install -g dev-report
 
 The npm package automatically downloads the correct pre-built binary for your OS.
 
+If you want the GitHub Packages registry mirror instead, authenticate first and then use the scoped package name:
+
+```bash
+npm login --scope=@tonmoytalukder --auth-type=legacy --registry=https://npm.pkg.github.com
+npm install -g @tonmoytalukder/dev-report --registry=https://npm.pkg.github.com
+```
+
 ### Homebrew — Mac only
 
 ```bash
-brew tap dev-report/dev-report
+brew tap TonmoyTalukder/homebrew-dev-report
 brew install dev-report
 ```
 
@@ -49,7 +56,7 @@ Search **"Dev Report"** in the Extensions panel, or install from [open-vsx.org](
 
 ### Direct Binary
 
-Download for your platform from [GitHub Releases](https://github.com/dev-report/dev-report/releases), unzip, and put the binary on your PATH.
+Download for your platform from [GitHub Releases](https://github.com/TonmoyTalukder/dev-report/releases), unzip, and put the binary on your PATH.
 
 ---
 
@@ -68,6 +75,7 @@ dev-report init
 This starts an interactive wizard that asks:
 
 - **Git author name** — your name as it appears in `git log` (e.g. `TonmoyTalukder`)
+- **GitHub username** — your GitHub account name used for repo/package publishing (e.g. `TonmoyTalukder`)
 - **AI provider** — which AI to use (default: `groq`)
 - **API key** — for the provider you chose
 - **Default output format** — `table`, `markdown`, `excel`, or `json`
@@ -81,6 +89,7 @@ Open `dev-report.config.json` — it looks like this:
 ```json
 {
   "user": "TonmoyTalukder",
+  "githubUsername": "TonmoyTalukder",
   "aiProvider": "groq",
   "groqApiKey": "gsk_...",
   "groqModel": "llama-3.3-70b-versatile",
@@ -107,7 +116,7 @@ echo "dev-report.config.json" >> .gitignore
 ### Step 4 — Generate your first report
 
 ```bash
-dev-report generate --checkin=09:00 --checkout=18:00
+dev-report generate --hours=9h --adjust=35min
 ```
 
 Done! ✅
@@ -204,11 +213,17 @@ No API key, no internet required once the model is downloaded.
 # Generate report for today (time range)
 dev-report generate --checkin=09:00 --checkout=18:00
 
+# Generate report for today's full commits using a total hours budget
+dev-report generate --hours=9h --adjust=35min
+
 # With break time deducted (35 min break → subtracted from task time)
 dev-report generate --checkin=09:00 --checkout=18:00 --adjust=35min
 
 # Specific date
 dev-report generate --date=2026-03-07 --checkin=09:00 --checkout=17:30
+
+# Specific date with full-day commits and a total budget
+dev-report generate --date=2026-03-07 --hours=8h30m --adjust=30m
 
 # Last N commits (no time range needed)
 dev-report generate --last=10
@@ -220,7 +235,7 @@ dev-report generate --user=TonmoyTalukder --checkin=09:00 --checkout=18:00
 dev-report generate --checkin=09:00 --checkout=18:00 --ai=gemini
 
 # Keep each commit as its own task with an explicit time budget
-dev-report generate --checkin=09:00 --checkout=18:00 --adjust=35min --task-mode=granular
+dev-report generate --hours=9h --adjust=35min --task-mode=granular
 
 # Keep more task detail even without check-in/check-out
 dev-report generate --last=20 --task-mode=granular
@@ -230,19 +245,19 @@ dev-report generate --last=20 --task-mode=granular
 
 ```bash
 # Print clean shareable text in terminal (default)
-dev-report generate --checkin=09:00 --checkout=18:00
+dev-report generate --hours=9h --adjust=35min
 
 # Print as Markdown
-dev-report generate --checkin=09:00 --checkout=18:00 --output=markdown
+dev-report generate --hours=9h --adjust=35min --output=markdown
 
 # Save as Markdown file
-dev-report generate --checkin=09:00 --checkout=18:00 --output=markdown --out=report.md
+dev-report generate --hours=9h --adjust=35min --output=markdown --out=report.md
 
 # Export to Excel
-dev-report generate --checkin=09:00 --checkout=18:00 --output=excel
+dev-report generate --hours=9h --adjust=35min --output=excel
 
 # Save as JSON
-dev-report generate --checkin=09:00 --checkout=18:00 --output=json
+dev-report generate --hours=9h --adjust=35min --output=json
 ```
 
 The default terminal output is optimized for copy-paste into chat apps like WhatsApp, Slack, and email. It uses plain numbered tasks instead of heavy ASCII table borders.
@@ -268,7 +283,7 @@ dev-report generate --last=20 --task-mode=detailed
 dev-report generate --last=20 --task-mode=granular
 
 # Granular mode also works with a real time budget
-dev-report generate --checkin=09:00 --checkout=18:00 --adjust=35min --task-mode=granular
+dev-report generate --hours=9h --adjust=35min --task-mode=granular
 ```
 
 ### All flags
@@ -279,6 +294,7 @@ dev-report generate --checkin=09:00 --checkout=18:00 --adjust=35min --task-mode=
 | `--date` | Date (default: today) | `--date=2026-03-07` |
 | `--checkin` | Work start time | `--checkin=09:00` |
 | `--checkout` | Work end time | `--checkout=18:00` |
+| `--hours` | Total day budget across that date's commits | `--hours=8h30m` |
 | `--adjust` | Break time to subtract | `--adjust=35min`, `--adjust=1h30m` |
 | `--last` | Last N commits | `--last=10` |
 | `--task-mode` | Task granularity mode | `--task-mode=balanced`, `--task-mode=detailed`, `--task-mode=granular` |
@@ -294,6 +310,12 @@ When you provide `--checkin` and `--checkout`, the tool calculates your **total 
 Budget = (checkout − checkin) − adjust
 ```
 
+When you provide `--hours`, the tool uses that value as the **total budget for the selected date's commits**:
+
+```
+Budget = hours − adjust
+```
+
 Each task gets a proportional share based on:
 
 - **Commit count** — tasks with more commits get more time
@@ -305,7 +327,14 @@ Each task gets a proportional share based on:
 
 The sum of all time values always equals your budget exactly.
 
-If you do **not** provide `--checkin` and `--checkout`, the tool estimates a reasonable total from your work history. In `detailed` and `granular` modes, the report can show more task rows without artificially inflating the estimated total day length.
+If you do **not** provide `--checkin`, `--checkout`, or `--hours`, the tool estimates a reasonable total from your work history. In `detailed` and `granular` modes, the report can show more task rows without artificially inflating the estimated total day length.
+
+## Package registries
+
+- **npmjs public package** — `dev-report`
+- **GitHub Packages mirror** — `@tonmoytalukder/dev-report`
+
+Publishing to npmjs does **not** populate the GitHub repository's **Packages** tab. That page only shows packages published to **GitHub Packages** at `npm.pkg.github.com`.
 
 ---
 
@@ -411,7 +440,7 @@ dev-report/
 ## Build from Source
 
 ```bash
-git clone https://github.com/dev-report/dev-report
+git clone https://github.com/TonmoyTalukder/dev-report
 cd dev-report
 go build -o dev-report .
 

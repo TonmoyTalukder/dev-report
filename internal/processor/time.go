@@ -16,23 +16,33 @@ import (
 // and an optional adjustment string.
 // checkIn and checkOut are "HH:MM". adjust is e.g. "35min", "1h40m", "2h".
 // Returns the available task time (window minus adjustment).
-func CalculateBudget(checkIn, checkOut, adjust string) (time.Duration, error) {
-	if checkIn == "" || checkOut == "" {
-		return 0, nil // no budget mode (only commit count used)
-	}
+func CalculateBudget(checkIn, checkOut, workingHours, adjust string) (time.Duration, error) {
+	var (
+		budget time.Duration
+		err    error
+	)
 
-	inTime, err := time.Parse("15:04", checkIn)
-	if err != nil {
-		return 0, fmt.Errorf("invalid check-in time %q: %w", checkIn, err)
-	}
-	outTime, err := time.Parse("15:04", checkOut)
-	if err != nil {
-		return 0, fmt.Errorf("invalid check-out time %q: %w", checkOut, err)
-	}
+	if checkIn != "" && checkOut != "" {
+		inTime, err := time.Parse("15:04", checkIn)
+		if err != nil {
+			return 0, fmt.Errorf("invalid check-in time %q: %w", checkIn, err)
+		}
+		outTime, err := time.Parse("15:04", checkOut)
+		if err != nil {
+			return 0, fmt.Errorf("invalid check-out time %q: %w", checkOut, err)
+		}
 
-	window := outTime.Sub(inTime)
-	if window <= 0 {
-		return 0, fmt.Errorf("check-out must be after check-in")
+		budget = outTime.Sub(inTime)
+		if budget <= 0 {
+			return 0, fmt.Errorf("check-out must be after check-in")
+		}
+	} else if workingHours != "" {
+		budget, err = ParseAdjust(workingHours)
+		if err != nil {
+			return 0, fmt.Errorf("invalid hours value %q: %w", workingHours, err)
+		}
+	} else {
+		return 0, nil
 	}
 
 	var adj time.Duration
@@ -43,7 +53,7 @@ func CalculateBudget(checkIn, checkOut, adjust string) (time.Duration, error) {
 		}
 	}
 
-	budget := window - adj
+	budget -= adj
 	if budget <= 0 {
 		return 0, fmt.Errorf("adjusted time budget is zero or negative")
 	}

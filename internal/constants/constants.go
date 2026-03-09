@@ -104,7 +104,7 @@ var GitCommitPrefixes = []string{
 
 const (
 	AppName        = "dev-report"
-	RepoURL        = "https://github.com/dev-report/dev-report"
+	RepoURL        = "https://github.com/TonmoyTalukder/dev-report"
 	DocsInstallURL = RepoURL + "#install"
 	ConfigFileName = "dev-report.config.json"
 

@@ -82,6 +82,13 @@ dev-report_X.Y.Z_windows_amd64.zip
 
 The npm package (`npm/`) downloads the correct binary for the user's OS during `postinstall`.
 
+There are now two npm distribution targets:
+
+- **npmjs public package** — `dev-report`
+- **GitHub Packages mirror** — `@tonmoytalukder/dev-report`
+
+Publishing to npmjs does **not** make the repository's **Packages** tab show a package. That page only lists packages published to **GitHub Packages**.
+
 ### ⚠ Required: Create an npm Automation Token
 
 npmjs.com has 2FA enabled by default. Publishing from the CLI requires an **Automation Token** (not a regular login) to bypass the 2FA prompt.
@@ -132,6 +139,39 @@ https://github.com/TonmoyTalukder/dev-report/releases/download/v{VERSION}/dev-re
 npm install -g dev-report
 dev-report version
 ```
+
+### GitHub Packages mirror
+
+The repo includes a GitHub Actions workflow at `.github/workflows/publish-github-package.yml`.
+On each published GitHub release, it prepares a scoped package from `npm/` and publishes:
+
+```text
+@tonmoytalukder/dev-report
+```
+
+to:
+
+```text
+https://npm.pkg.github.com
+```
+
+#### Manual publish steps
+
+```bash
+# 1. Prepare the scoped GitHub package mirror
+npm --prefix ./npm run prepare:github-package
+
+# 2. Authenticate to GitHub Packages
+npm login --scope=@tonmoytalukder --auth-type=legacy --registry=https://npm.pkg.github.com
+
+# 3. Publish the scoped mirror package
+npm publish ./npm/.github-package
+```
+
+#### Verify
+
+- Open `https://github.com/TonmoyTalukder/dev-report/packages`
+- Confirm `@tonmoytalukder/dev-report` is listed
 
 ---
 
@@ -304,6 +344,7 @@ Use this checklist when releasing a new version:
 [ ] GitHub Release confirmed (all 5 archives + checksums.txt visible)
 [ ] npm Automation Token ready (npmjs.com → Access Tokens → Granular)
 [ ] npm published:        NPM_TOKEN=npm_... npm publish ./npm --access public
+[ ] GitHub Packages mirror visible: @tonmoytalukder/dev-report on the repo Packages tab
 [ ] Homebrew formula updated with new version + real SHA256 from checksums.txt
 [ ] VS Code extension published: npx vsce publish
 [ ] Open VSX extension published: npm run publish-ovsx

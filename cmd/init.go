@@ -1,14 +1,19 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/dev-report/dev-report/internal/config"
 	"github.com/dev-report/dev-report/internal/constants"
 )
+
+var promptInput io.Reader = os.Stdin
 
 var initCmd = &cobra.Command{
 	Use:   "init",
@@ -22,6 +27,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	promptInput = os.Stdin
 
 	fmt.Println("\n  dev-report — setup wizard")
 	fmt.Println("  ─────────────────────────────────────")
@@ -29,6 +35,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	cfg := config.Defaults()
 
 	cfg.User = prompt("Git author name (leave blank for all authors)", "")
+	cfg.GitHubUsername = prompt("GitHub username (for repo and package publishing)", "")
 	cfg.AIProvider = promptChoice("AI provider", constants.SupportedProviders, constants.DefaultAIProvider)
 
 	switch cfg.AIProvider {
@@ -52,7 +59,8 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("\n  ✅ Config saved to dev-report.config.json\n")
-	fmt.Printf("  Run: dev-report generate --checkin=09:00 --checkout=18:00\n\n")
+	fmt.Printf("  Run: dev-report generate --hours=9h --adjust=35min\n")
+	fmt.Printf("       or dev-report generate --checkin=09:00 --checkout=18:00\n\n")
 	return nil
 }
 
@@ -62,8 +70,7 @@ func prompt(label, defaultVal string) string {
 	} else {
 		fmt.Printf("  %s: ", label)
 	}
-	var val string
-	fmt.Scanln(&val)
+	val := readPromptLine()
 	if val == "" {
 		return defaultVal
 	}
@@ -72,12 +79,21 @@ func prompt(label, defaultVal string) string {
 
 func promptChoice(label string, choices []string, defaultVal string) string {
 	fmt.Printf("  %s %v [%s]: ", label, choices, defaultVal)
-	var val string
-	fmt.Scanln(&val)
+	val := readPromptLine()
 	for _, c := range choices {
 		if val == c {
 			return val
 		}
 	}
 	return defaultVal
+}
+
+func readPromptLine() string {
+	reader := bufio.NewReader(promptInput)
+	line, err := reader.ReadString('\n')
+	if err != nil && err != io.EOF {
+		return ""
+	}
+	promptInput = reader
+	return strings.TrimRight(line, "\r\n")
 }

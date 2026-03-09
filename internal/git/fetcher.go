@@ -86,7 +86,7 @@ func BuildOptions(input *types.ReportInput) (FetchOptions, error) {
 		}
 		opts.Since = since
 		opts.Until = until
-	} else if input.Date != "" {
+	} else if input.Date != "" || input.WorkingHours != "" {
 		// Date only: full day
 		since, err := parseDateTime(refDate, "00:00")
 		if err != nil {
